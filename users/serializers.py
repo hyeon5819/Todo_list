@@ -4,6 +4,11 @@ from .models import User
 from rest_framework.response import Response
 
 
+"""
+회원 관리 합칠 수 있는지 고민해보기
+"""
+
+
 # 회원 생성
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
