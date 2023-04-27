@@ -44,11 +44,13 @@ class User(AbstractBaseUser):
     introduction = models.CharField(max_length=255, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["fullname", "gender", "age", "introduction"]
+    REQUIRED_FIELDS = []
 
     def __str__(self):
         return self.email
