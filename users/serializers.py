@@ -5,6 +5,7 @@ from .models import User
 
 """
 회원 관리 합칠 수 있는지 고민해보기
+pw 변경 나누기
 """
 
 

@@ -59,16 +59,3 @@ class UserProfile(APIView):
 # PAYLOAD 커스터마이징
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
-
-"""
-포스트맨 test 확인용
-"""
-
-
-# 회원 리스트
-class UserAll(APIView):
-    def get(self, request):
-        users = User.objects.all()
-        serializer = UserCreateSerializer(users, many=True)
-        return Response(serializer.data)
