@@ -29,20 +29,34 @@ class UserProfile(APIView):
         serializer = UserProfileSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 프로필 수정 / 자신만 수정 가능 -> 회원 수정기능 email, password관련 구현방향 고민해보기
+    # 프로필 수정 / 자신만 수정 가능
     def put(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
 
         if user == request.user:
-            serializer = UserUpdateSerializer(user, data=request.data)
+            # email이 요청에 들어오면 제거해주기
             if "email" in request.data:
-                return Response({"mesasage": "아이디는 변경할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-            elif serializer.is_valid():
-                serializer.update(user, validated_data=request.data)
-                return Response({"message": "수정완료!", "profile": serializer.data}, status=status.HTTP_200_OK)
-            else:
-                return Response({"message": f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+                del request.data['email']
 
+            # password 변경 요청을 보냈을때
+            elif "password" in request.data:
+                print("비밀번호")
+                serializer = UserPasswordSerializer(user, data=request.data)
+                if serializer.is_valid():
+                    serializer.update(user, validated_data=request.data)
+                    return Response({"message": "비밀번호 변경 완료!"}, status=status.HTTP_200_OK)
+                else:
+                    print("비밀번호 에러")
+                    return Response({"message": f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+            elif not "password" in request.data:
+                serializer = UserUpdateSerializer(user, data=request.data)
+                if serializer.is_valid():
+                    print("그냥정보")
+                    serializer.update(user, validated_data=request.data)
+                    return Response({"message": "수정완료!", "profile": serializer.data}, status=status.HTTP_200_OK)
+                else:
+                    print("그냥정보 에러")
+                    return Response({"message": f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "접근할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 

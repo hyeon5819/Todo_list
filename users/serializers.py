@@ -39,22 +39,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        # fields = '__all__'
         fields = ["fullname", "gender", "age", "introduction",]
-        # exclude = ('email', 'password',)
 
     def update(self, instance, validated_data):
-        print(validated_data)
-        if "password" in validated_data:
-            user = super().update(instance, validated_data)
-            password = user.password
-            user.set_password(password)
-            user.save()
-            return user
-        else:
-            user = super().update(instance, validated_data)
-            user.save()
-            return user
+        user = super().update(instance, validated_data)
+        user.save()
+        return user
+
+
+# 회원 비밀번호 변경
+class UserPasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["password",]
+
+    def update(self, instance, validated_data):
+        user = super().update(instance, validated_data)
+        password = user.password
+        user.set_password(password)
+        user.save()
+        return user
 
 
 # PAYLOAD 커스터마이징
