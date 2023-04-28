@@ -3,7 +3,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from .serializers import *
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from users.models import User
 from todo.models import Todo
 
@@ -11,7 +11,9 @@ from todo.models import Todo
 # Create your views here.
 # Todo 리스트 보기 / 생성
 class TodoView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     # 리스트 보기
+
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         if request.user == user:
@@ -37,7 +39,9 @@ class TodoView(APIView):
 
 # Todo detail 수정 / 삭제
 class TodoDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
     # Todo detail보기
+
     def get(self, request, todo_id, user_id):
         user = get_object_or_404(User, id=user_id)
         if request.user == user:
