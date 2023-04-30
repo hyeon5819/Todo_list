@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from .serializers import *
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from .models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -22,6 +22,7 @@ class UserView(APIView):
 
 # 회원 프로필 보기/수정/삭제
 class UserProfile(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
     # 프로필 페이지
     def get(self, request, user_id):
@@ -40,22 +41,18 @@ class UserProfile(APIView):
 
             # password 변경 요청을 보냈을때
             elif "password" in request.data:
-                print("비밀번호")
                 serializer = UserPasswordSerializer(user, data=request.data)
                 if serializer.is_valid():
                     serializer.update(user, validated_data=request.data)
                     return Response({"message": "비밀번호 변경 완료!"}, status=status.HTTP_200_OK)
                 else:
-                    print("비밀번호 에러")
                     return Response({"message": f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
             elif not "password" in request.data:
                 serializer = UserUpdateSerializer(user, data=request.data)
                 if serializer.is_valid():
-                    print("그냥정보")
                     serializer.update(user, validated_data=request.data)
                     return Response({"message": "수정완료!", "profile": serializer.data}, status=status.HTTP_200_OK)
                 else:
-                    print("그냥정보 에러")
                     return Response({"message": f"${serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"message": "접근할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)

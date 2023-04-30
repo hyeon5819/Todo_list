@@ -3,26 +3,16 @@ from rest_framework import serializers
 from .models import User
 
 
-"""
-회원 관리 합칠 수 있는지 고민해보기
-pw 변경 나누기
-"""
-
-
 # 회원 생성
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
 
-    def create(self, validated_data, **kwargs):  # "fullname", "gender", "age", "introduction"
+    def create(self, validated_data, **kwargs):
         user = super().create(validated_data, **kwargs)
         password = user.password
         user.set_password(password)
-        # user.fullname = kwargs["fullname", ""]            / fullname
-        # user.gender = kwargs["gender", ""]                / gender
-        # user.age = kwargs["age", ""]                      / age
-        # user.introduction = kwargs["introduction", ""]    / introduction
         user.save()
         return user
 
