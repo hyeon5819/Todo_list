@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from users.models import User
 from todo.models import Todo
+from datetime import datetime
+from django.utils import timezone
 
 
 # Create your views here.
@@ -55,31 +57,48 @@ class TodoDetailView(APIView):
 
         # 유저 권한을 위한 확인
         if request.user == todo.user:
-            serializer = TodoUpdateSerializer(todo, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
 
-                # ↓ 요청 값을 저장한 뒤 완료여부 체크, 완료시간 적용 ↓
-                updated_todo = Todo.objects.get(id=todo_id)
+            # 완료 여부 요청시
+            if 'is_complete' in request. data:
 
-                # 완료상태가 True인 경우 competion_at 시간을 수정시간과 같게 지정해준다.
-                if updated_todo.is_complete == True:
-                    updated_todo.completion_at = updated_todo.updated_at
-                    updated_todo.save()
-                    serializer_completion_at = TodoSerializer(
-                        updated_todo)
-                    return Response(serializer_completion_at.data, status=status.HTTP_200_OK)
+                # 미완료 → 완료시 시간 저장
+                if request.data['is_complete'] == True and todo.completion_at == None:
+                    request.data['completion_at'] = timezone.now()
+                    request.data['created_at'] = timezone.now()
+                    serializer = TodoUpdateSerializer(todo, data=request.data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-                # 완료상태가 False인 경우 competion_at 시간을 제거해준다.
-                elif updated_todo.is_complete == False:
-                    updated_todo.completion_at = None
-                    updated_todo.save()
-                    serializer_completion_at = TodoSerializer(
-                        updated_todo)
-                    return Response(serializer_completion_at.data, status=status.HTTP_200_OK)
+                # 미완료 상태시 완료시간 제거
+                elif request.data['is_complete'] == False:
+                    request.data['completion_at'] = None
+                    serializer = TodoUpdateSerializer(todo, data=request.data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+                # 완료상태에서 is_complete == True요청이 추가로 들어오게 되는경우 처음 완료시점시간이 유지되도록 해준다.
+                else:
+                    serializer = TodoUpdateSerializer(todo, data=request.data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response(serializer.data, status=status.HTTP_200_OK)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # is_complete 요청 없이 내용수정만 진행될 때
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                serializer = TodoUpdateSerializer(todo, data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # 유저 본인이 아니면 접근 불가
         else:
